@@ -21,23 +21,23 @@ sciezka_do_pliku = "dane_firm.csv"
 
 # 1. Definiujemy województwa i liczbę stron dla każdego z nich (dla testów dajemy mało stron)
 wojewodztwa_do_pobrania = {
-    "Mazowieckie": 549,   # Zamiast 549, dla testów pobierze tylko strony 0, 1, 2, 3
-    "Małopolskie": 332,   # Zamiast 332, dla testów pobierze tylko strony 0, 1, 2, 3
-    "Śląskie": 327,      # Zamiast 327, dla testów pobierze tylko strony 0, 1, 2, 3
-    "Dolnośląskie": 245,   # Zamiast 245, dla testów pobierze tylko strony 0, 1, 2, 3
-    "Wielkopolskie": 238,   # Zamiast 238, dla testów pobierze tylko strony 0, 1, 2, 3
-    "Pomorskie": 178,   # Zamiast 178, dla testów pobierze tylko strony 0, 1, 2, 3
-    "Lubelskie": 89,   # Zamiast 89, dla testów pobierze tylko strony 0, 1, 2, 3
-    "Zachodniopomorskie": 112,   # Zamiast 112, dla testów pobierze tylko strony 0, 1, 2, 3
-    "Podkarpackie": 110,   # Zamiast 110, dla testów pobierze tylko strony 0, 1, 2, 3
-    "Kujawsko-Pomorskie": 105,   # Zamiast 105, dla testów pobierze tylko strony 0, 1, 2, 3
-    "Warmińsko-Mazurskie": 64,   # Zamiast 64, dla testów pobierze tylko strony 0, 1, 2, 3
-    "Podlaskie": 64,   # Zamiast 64, dla testów pobierze tylko strony 0, 1, 2, 3
-    "Łódzkie": 131,   # Zamiast 131, dla testów pobierze tylko strony 0, 1, 2, 3
-    "Świętokrzyskie": 54,   # Zamiast 54, dla testów pobierze tylko strony 0, 1, 2, 3
-    "Opolskie": 39,   # Zamiast 39, dla testów pobierze tylko strony 0, 1, 2, 3
-    "Lubuskie": 46,   # Zamiast 46, dla testów pobierze tylko strony 0, 1, 2, 3
-    "Cała+Polska": 92   # Zamiast 92, dla testów pobierze tylko strony 0, 1, 2, 3
+    "Mazowieckie": 1,   # Zamiast 549, dla testów pobierze tylko strony 0, 1, 2, 3
+    "Małopolskie": 1,   # Zamiast 332, dla testów pobierze tylko strony 0, 1, 2, 3
+    "Śląskie": 1,      # Zamiast 327, dla testów pobierze tylko strony 0, 1, 2, 3
+    "Dolnośląskie": 1,   # Zamiast 245, dla testów pobierze tylko strony 0, 1, 2, 3
+    "Wielkopolskie": 1,   # Zamiast 238, dla testów pobierze tylko strony 0, 1, 2, 3
+    "Pomorskie": 1,   # Zamiast 178, dla testów pobierze tylko strony 0, 1, 2, 3
+    "Lubelskie": 1,   # Zamiast 89, dla testów pobierze tylko strony 0, 1, 2, 3
+    "Zachodniopomorskie": 1,   # Zamiast 112, dla testów pobierze tylko strony 0, 1, 2, 3
+    "Podkarpackie": 1,   # Zamiast 110, dla testów pobierze tylko strony 0, 1, 2, 3
+    "Kujawsko-Pomorskie": 1,   # Zamiast 105, dla testów pobierze tylko strony 0, 1, 2, 3
+    "Warmińsko-Mazurskie": 1,   # Zamiast 64, dla testów pobierze tylko strony 0, 1, 2, 3
+    "Podlaskie": 1,   # Zamiast 64, dla testów pobierze tylko strony 0, 1, 2, 3
+    "Łódzkie": 1,   # Zamiast 131, dla testów pobierze tylko strony 0, 1, 2, 3
+    "Świętokrzyskie": 1,   # Zamiast 54, dla testów pobierze tylko strony 0, 1, 2, 3
+    "Opolskie": 1,   # Zamiast 39, dla testów pobierze tylko strony 0, 1, 2, 3
+    "Lubuskie": 1,   # Zamiast 46, dla testów pobierze tylko strony 0, 1, 2, 3
+    "Cała+Polska": 1   # Zamiast 92, dla testów pobierze tylko strony 0, 1, 2, 3
 }
 
 with open(sciezka_do_pliku, "w", newline="", encoding="utf-8-sig") as file:
@@ -263,3 +263,153 @@ with open(sciezka_do_pliku, "w", newline="", encoding="utf-8-sig") as file:
                 writer.writerow([nazwa, email, www])
     except requests.exceptions.RequestException as e:
             print(f"Błąd przy pobieraniu strony {url_notariusze}: {e}")
+
+    def decode_cfemail(cfemail):
+        try:
+            r = int(cfemail[:2], 16)
+            email = ''.join([chr(int(cfemail[i:i+2], 16) ^ r) for i in range(2, len(cfemail), 2)])
+            return email
+        except Exception:
+            return "Błąd dekodowania"
+
+    print("\n=== GOSPODARKA MORSKA SZUKANIE ===")
+    try:
+        for i in range(1, 4): # Do testów zalecam zmniejszyć np. do range(1, 4)
+            url_gosp = f"https://www.gospodarkamorska.pl/lista-firm?page={i}"
+            czas_pauzy = random.uniform(0.5, 1.0)
+            time.sleep(czas_pauzy)
+            response = requests.get(url_gosp, headers=headers)
+            response.raise_for_status() 
+            soup = BeautifulSoup(response.text, "html.parser")
+
+            # Szukamy wszystkich firm na liście
+            firmy = soup.find_all("div", class_="cate_box")
+            
+            # POPRAWKA 1: Zmiana 'notariusze' na 'firmy'
+            if not firmy:
+                print("Nie znaleziono firm pod linkiem")
+                continue
+
+            for firma in firmy:
+                # --- 1. NAZWA ---
+                name_h2 = firma.find("h2", class_="article-h1-title")
+                if name_h2:
+                    nazwa = name_h2.text.strip()
+                else:
+                    nazwa = "Brak nazwy"
+
+                # --- 2. E-MAIL ---
+                email = "Brak maila"
+                info_divs = firma.find_all("div", class_="cate_box_info")
+
+                for info in info_divs:
+                    h6_tag = info.find("h6")
+                    if h6_tag and h6_tag.text.strip() == "E-mail:":
+                        p_tag = info.find("p")
+                        if p_tag:
+                            # POPRAWKA 2: Sprawdzamy, czy Cloudflare zablokował maila wewnątrz tego <p>
+                            cf_span = p_tag.find(class_='__cf_email__')
+                            if cf_span and 'data-cfemail' in cf_span.attrs:
+                                # Szyfr znaleziony - odkodowujemy!
+                                email = decode_cfemail(cf_span['data-cfemail'])
+                            else:
+                                # Brak szyfru - bierzemy zwykły tekst
+                                email = p_tag.text.strip()
+                            break # Znaleźliśmy e-mail, przerywamy pętlę "for info in info_divs"
+
+                # --- 3. WWW ---
+                site_div = firma.find("div", class_="cate_box_link")
+                www = "Brak strony" 
+                
+                if site_div:
+                    a_tag = site_div.find('a', href=re.compile(r'^http', re.IGNORECASE))
+                    if a_tag:
+                        www = a_tag['href']
+
+                # Wyświetlamy i zapisujemy (upewnij się, że obiekt 'writer' z CSV istnieje wyżej w Twoim kodzie)
+                print(f"-> {nazwa} | {email} | {www}")
+                writer.writerow([nazwa, email, www])
+            
+    except requests.exceptions.RequestException as e:
+        print(f"Błąd przy pobieraniu strony {url_gosp}: {e}")
+
+    api_url = "https://www.portalmorski.pl/index.php?option=com_catalogue&task=category&format=raw"
+
+    def decode_cfemail(cfemail):
+        try:
+            r = int(cfemail[:2], 16)
+            email = ''.join([chr(int(cfemail[i:i+2], 16) ^ r) for i in range(2, len(cfemail), 2)])
+            return email
+        except Exception:
+            return "Błąd dekodowania"
+
+    print("\n=== ROZPOCZYNAM POBIERANIE Z PORTALMORSKI.PL ===")
+
+    for start_offset in range(0, 4100, 10):  # DO ZMIANY NA 4100 ZAMIAST 30
+        print(f"Pobieram paczkę firm od pozycji: {start_offset}...")
+        
+        payload = {
+            "qs": "",
+            "city": "",
+            "catid": "",
+            "province": "",
+            "id": "1", 
+            "start": str(start_offset) 
+        }
+        
+        try:
+            czas_pauzy = random.uniform(1.0, 2.0)
+            time.sleep(czas_pauzy)
+            
+            response = requests.post(api_url, headers=headers, data=payload)
+            response.raise_for_status()
+
+            if not response.text.strip():
+                 print("Dotarłem do końca bazy,zamykam pobieranie.")
+                 break
+            
+            soup = BeautifulSoup(response.text, "html.parser")
+            
+            soup = BeautifulSoup(response.text, "html.parser")
+            
+            # WRESZCIE ZNAMY DOKŁADNĄ KLASĘ!
+            firmy = soup.find_all("div", class_="company-container")
+
+            if not firmy:
+                 print("⚠️ Pusta paczka (brak klasy company-container).")
+                 continue
+
+            for firma in firmy:
+                # 1. NAZWA (Zgodnie z obraz_11.png -> h3 -> a)
+                h3_tag = firma.find("h3")
+                if h3_tag and h3_tag.find("a"):
+                    nazwa = h3_tag.find("a").text.strip()
+                else:
+                    nazwa = "Brak nazwy"
+
+                # 2. E-MAIL (Nasz niezawodny pies tropiący)
+                caly_tekst = firma.get_text(separator=' ')
+                znalezione_maile = email_pattern.findall(caly_tekst)
+                email = znalezione_maile[0] if znalezione_maile else "Brak maila"
+                
+                # Odkodowywanie Cloudflare (jeśli występuje na stronie)
+                cf_span = firma.find(class_='__cf_email__')
+                if cf_span and 'data-cfemail' in cf_span.attrs:
+                    email = decode_cfemail(cf_span['data-cfemail'])
+
+                # 3. WWW (Szukamy linków wychodzących)
+                www = "Brak strony"
+                wszystkie_linki = firma.find_all("a")
+                for link in wszystkie_linki:
+                    href = link.get('href', '')
+                    # Ignorujemy linki wewnętrzne Portalu Morskiego
+                    if (href.startswith('http') or href.startswith('www.')) and 'portalmorski.pl' not in href:
+                        www = href
+                        break # Mamy to, kończymy szukać WWW
+
+                print(f"-> {nazwa} | {email} | {www}")
+                writer.writerow([nazwa, email, www])
+        except requests.exceptions.RequestException as e:
+            print(f"Błąd przy pobieraniu paczki {start_offset}: {e}")
+
+
