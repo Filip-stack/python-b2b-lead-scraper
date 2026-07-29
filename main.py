@@ -21,23 +21,23 @@ sciezka_do_pliku = "dane_firm.csv"
 
 # 1. Definiujemy województwa i liczbę stron dla każdego z nich (dla testów dajemy mało stron)
 wojewodztwa_do_pobrania = {
-    "Mazowieckie": 1,   # Zamiast 549, dla testów pobierze tylko strony 0, 1, 2, 3
-    "Małopolskie": 1,   # Zamiast 332, dla testów pobierze tylko strony 0, 1, 2, 3
-    "Śląskie": 1,      # Zamiast 327, dla testów pobierze tylko strony 0, 1, 2, 3
-    "Dolnośląskie": 1,   # Zamiast 245, dla testów pobierze tylko strony 0, 1, 2, 3
-    "Wielkopolskie": 1,   # Zamiast 238, dla testów pobierze tylko strony 0, 1, 2, 3
-    "Pomorskie": 1,   # Zamiast 178, dla testów pobierze tylko strony 0, 1, 2, 3
-    "Lubelskie": 1,   # Zamiast 89, dla testów pobierze tylko strony 0, 1, 2, 3
-    "Zachodniopomorskie": 1,   # Zamiast 112, dla testów pobierze tylko strony 0, 1, 2, 3
-    "Podkarpackie": 1,   # Zamiast 110, dla testów pobierze tylko strony 0, 1, 2, 3
-    "Kujawsko-Pomorskie": 1,   # Zamiast 105, dla testów pobierze tylko strony 0, 1, 2, 3
-    "Warmińsko-Mazurskie": 1,   # Zamiast 64, dla testów pobierze tylko strony 0, 1, 2, 3
-    "Podlaskie": 1,   # Zamiast 64, dla testów pobierze tylko strony 0, 1, 2, 3
-    "Łódzkie": 1,   # Zamiast 131, dla testów pobierze tylko strony 0, 1, 2, 3
-    "Świętokrzyskie": 1,   # Zamiast 54, dla testów pobierze tylko strony 0, 1, 2, 3
-    "Opolskie": 1,   # Zamiast 39, dla testów pobierze tylko strony 0, 1, 2, 3
-    "Lubuskie": 1,   # Zamiast 46, dla testów pobierze tylko strony 0, 1, 2, 3
-    "Cała+Polska": 1   # Zamiast 92, dla testów pobierze tylko strony 0, 1, 2, 3
+    "Mazowieckie": 549,   # Zamiast 549, dla testów pobierze tylko strony 0, 1, 2, 3
+    "Małopolskie": 332,   # Zamiast 332, dla testów pobierze tylko strony 0, 1, 2, 3
+    "Śląskie": 327,      # Zamiast 327, dla testów pobierze tylko strony 0, 1, 2, 3
+    "Dolnośląskie": 245,   # Zamiast 245, dla testów pobierze tylko strony 0, 1, 2, 3
+    "Wielkopolskie": 238,   # Zamiast 238, dla testów pobierze tylko strony 0, 1, 2, 3
+    "Pomorskie": 178,   # Zamiast 178, dla testów pobierze tylko strony 0, 1, 2, 3
+    "Lubelskie": 89,   # Zamiast 89, dla testów pobierze tylko strony 0, 1, 2, 3
+    "Zachodniopomorskie": 112,   # Zamiast 112, dla testów pobierze tylko strony 0, 1, 2, 3
+    "Podkarpackie": 110,   # Zamiast 110, dla testów pobierze tylko strony 0, 1, 2, 3
+    "Kujawsko-Pomorskie": 105,   # Zamiast 105, dla testów pobierze tylko strony 0, 1, 2, 3
+    "Warmińsko-Mazurskie": 64,   # Zamiast 64, dla testów pobierze tylko strony 0, 1, 2, 3
+    "Podlaskie": 64,   # Zamiast 64, dla testów pobierze tylko strony 0, 1, 2, 3
+    "Łódzkie": 131,   # Zamiast 131, dla testów pobierze tylko strony 0, 1, 2, 3
+    "Świętokrzyskie": 54,   # Zamiast 54, dla testów pobierze tylko strony 0, 1, 2, 3
+    "Opolskie": 39,   # Zamiast 39, dla testów pobierze tylko strony 0, 1, 2, 3
+    "Lubuskie": 46,   # Zamiast 46, dla testów pobierze tylko strony 0, 1, 2, 3
+    "Cała+Polska": 92   # Zamiast 92, dla testów pobierze tylko strony 0, 1, 2, 3
 }
 
 with open(sciezka_do_pliku, "w", newline="", encoding="utf-8-sig") as file:
@@ -71,7 +71,7 @@ with open(sciezka_do_pliku, "w", newline="", encoding="utf-8-sig") as file:
                 
                 # Zabezpieczenie: Jeśli nie ma firm na stronie, to prawdopodobnie koniec katalogu lub blokada
                 if not firmy:
-                    print(f"⚠️ Uwaga: Brak firm na stronie {page_num}. Przechodzę do kolejnej.")
+                    print(f"Brak firm na stronie {page_num}. Przechodzę do kolejnej.")
                     continue
                 
                 # 4. Pętla przetwarzająca pojedyncze wizytówki na danej stronie
@@ -85,9 +85,12 @@ with open(sciezka_do_pliku, "w", newline="", encoding="utf-8-sig") as file:
                     
                     if kontakt_tag:
                         # Szukamy maila używając wyrażeń regularnych
-                        caly_tekst_kontaktu = kontakt_tag.text
-                        znalezione_maile = email_pattern.findall(caly_tekst_kontaktu)
-                        email = znalezione_maile[0] if znalezione_maile else "Brak e-maila"
+                        email = "Brak e-maila"
+
+                        for tekst in kontakt_tag.stripped_strings:
+                            if email_pattern.fullmatch(tekst):
+                                email = tekst
+                                break
                         
                         # Szukamy strony WWW w atrybucie 'href'
                         a_tag = kontakt_tag.find("a")
@@ -382,8 +385,8 @@ with open(sciezka_do_pliku, "w", newline="", encoding="utf-8-sig") as file:
             for firma in firmy:
                 # 1. NAZWA (Zgodnie z obraz_11.png -> h3 -> a)
                 h3_tag = firma.find("h3")
-                if h3_tag and h3_tag.find("a"):
-                    nazwa = h3_tag.find("a").text.strip()
+                if h3_tag:
+                    nazwa = h3_tag.text.strip()
                 else:
                     nazwa = "Brak nazwy"
 
