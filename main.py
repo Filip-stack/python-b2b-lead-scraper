@@ -21,7 +21,7 @@ sciezka_do_pliku = "dane_firm.csv"
 
 # 1. Definiujemy województwa i liczbę stron dla każdego z nich (dla testów dajemy mało stron)
 wojewodztwa_do_pobrania = {
-    "Mazowieckie": 549,   # Zamiast 549, dla testów pobierze tylko strony 0, 1, 2, 3
+    "Mazowieckie": 349,   # Zamiast 549, dla testów pobierze tylko strony 0, 1, 2, 3
     "Małopolskie": 332,   # Zamiast 332, dla testów pobierze tylko strony 0, 1, 2, 3
     "Śląskie": 327,      # Zamiast 327, dla testów pobierze tylko strony 0, 1, 2, 3
     "Dolnośląskie": 245,   # Zamiast 245, dla testów pobierze tylko strony 0, 1, 2, 3
@@ -39,6 +39,7 @@ wojewodztwa_do_pobrania = {
     "Lubuskie": 46,   # Zamiast 46, dla testów pobierze tylko strony 0, 1, 2, 3
     "Cała+Polska": 92   # Zamiast 92, dla testów pobierze tylko strony 0, 1, 2, 3
 }
+widziane_maile = set()
 
 with open(sciezka_do_pliku, "w", newline="", encoding="utf-8-sig") as file:
     writer = csv.writer(file, delimiter=";")
@@ -86,6 +87,7 @@ with open(sciezka_do_pliku, "w", newline="", encoding="utf-8-sig") as file:
                     if kontakt_tag:
                         # Szukamy maila używając wyrażeń regularnych
                         email = "Brak e-maila"
+                    
 
                         for tekst in kontakt_tag.stripped_strings:
                             if email_pattern.fullmatch(tekst):
@@ -101,6 +103,9 @@ with open(sciezka_do_pliku, "w", newline="", encoding="utf-8-sig") as file:
                     else:
                         email = "Brak e-maila"
                         www = "Brak strony"
+                    if email == "Brak e-maila":
+                        continue
+                    
                     
                     print(f"-> {nazwa} | E-mail: {email} | WWW: {www}")
                     writer.writerow([nazwa, email, www])
@@ -154,6 +159,15 @@ with open(sciezka_do_pliku, "w", newline="", encoding="utf-8-sig") as file:
                     email = znalezione_maile[0] if znalezione_maile else "Brak e-maila"
                 else:
                     email = "Brak e-maila"
+
+                if email == "Brak e-maila":
+                    continue
+
+                if email in widziane_maile:
+                    # Jeśli tak, przerywamy przetwarzanie tej firmy i idziemy do następnej
+                    print(f"   [!] Pomijam duplikat: {email}")
+                    continue
+                widziane_maile.add(email)
                 print(f"-> {nazwa} | E-mail: {email} | WWW: {www}")
                 writer.writerow([nazwa, email, www])
         except requests.exceptions.RequestException as e:
@@ -214,6 +228,14 @@ with open(sciezka_do_pliku, "w", newline="", encoding="utf-8-sig") as file:
                     www = "Brak strony"
             else:
                 www = "Brak strony"
+            if email == "Brak e-maila":
+                continue
+
+            if email in widziane_maile:
+                # Jeśli tak, przerywamy przetwarzanie tej firmy i idziemy do następnej
+                print(f"   [!] Pomijam duplikat: {email}")
+                continue
+            widziane_maile.add(email)
                 
             print(f"-> {nazwa} | E-mail: {email} | WWW: {www}")
             writer.writerow([nazwa, email, www])
@@ -261,6 +283,14 @@ with open(sciezka_do_pliku, "w", newline="", encoding="utf-8-sig") as file:
                     email = "Brak e-maila"
                 
                 www = "Brak strony"
+                if email == "Brak e-maila":
+                    continue
+
+                if email in widziane_maile:
+                    # Jeśli tak, przerywamy przetwarzanie tej firmy i idziemy do następnej
+                    print(f"   [!] Pomijam duplikat: {email}")
+                    continue
+                widziane_maile.add(email)
 
                 print(f"-> {nazwa} | {email} | {www}")
                 writer.writerow([nazwa, email, www])
@@ -277,7 +307,7 @@ with open(sciezka_do_pliku, "w", newline="", encoding="utf-8-sig") as file:
 
     print("\n=== GOSPODARKA MORSKA SZUKANIE ===")
     try:
-        for i in range(1, 4): # Do testów zalecam zmniejszyć np. do range(1, 4)
+        for i in range(1, 295): # Do testów zalecam zmniejszyć np. do range(1, 4) 295
             url_gosp = f"https://www.gospodarkamorska.pl/lista-firm?page={i}"
             czas_pauzy = random.uniform(0.5, 1.0)
             time.sleep(czas_pauzy)
@@ -302,7 +332,7 @@ with open(sciezka_do_pliku, "w", newline="", encoding="utf-8-sig") as file:
                     nazwa = "Brak nazwy"
 
                 # --- 2. E-MAIL ---
-                email = "Brak maila"
+                email = "Brak e-maila"
                 info_divs = firma.find_all("div", class_="cate_box_info")
 
                 for info in info_divs:
@@ -328,8 +358,16 @@ with open(sciezka_do_pliku, "w", newline="", encoding="utf-8-sig") as file:
                     a_tag = site_div.find('a', href=re.compile(r'^http', re.IGNORECASE))
                     if a_tag:
                         www = a_tag['href']
+                if email == "Brak e-maila":
+                    continue
 
-                # Wyświetlamy i zapisujemy (upewnij się, że obiekt 'writer' z CSV istnieje wyżej w Twoim kodzie)
+                if email in widziane_maile:
+                    # Jeśli tak, przerywamy przetwarzanie tej firmy i idziemy do następnej
+                    print(f"   [!] Pomijam duplikat: {email}")
+                    continue
+                widziane_maile.add(email)
+
+                
                 print(f"-> {nazwa} | {email} | {www}")
                 writer.writerow([nazwa, email, www])
             
@@ -393,7 +431,7 @@ with open(sciezka_do_pliku, "w", newline="", encoding="utf-8-sig") as file:
                 # 2. E-MAIL (Nasz niezawodny pies tropiący)
                 caly_tekst = firma.get_text(separator=' ')
                 znalezione_maile = email_pattern.findall(caly_tekst)
-                email = znalezione_maile[0] if znalezione_maile else "Brak maila"
+                email = znalezione_maile[0] if znalezione_maile else "Brak e-maila"
                 
                 # Odkodowywanie Cloudflare (jeśli występuje na stronie)
                 cf_span = firma.find(class_='__cf_email__')
@@ -409,10 +447,66 @@ with open(sciezka_do_pliku, "w", newline="", encoding="utf-8-sig") as file:
                     if (href.startswith('http') or href.startswith('www.')) and 'portalmorski.pl' not in href:
                         www = href
                         break # Mamy to, kończymy szukać WWW
+                if email == "Brak e-maila":
+                    continue
+
+                if email in widziane_maile:
+                    # Jeśli tak, przerywamy przetwarzanie tej firmy i idziemy do następnej
+                    print(f"   [!] Pomijam duplikat: {email}")
+                    continue
+                widziane_maile.add(email)
 
                 print(f"-> {nazwa} | {email} | {www}")
                 writer.writerow([nazwa, email, www])
         except requests.exceptions.RequestException as e:
             print(f"Błąd przy pobieraniu paczki {start_offset}: {e}")
 
+    firmy = {"mysticroots-damian-blaszak/", "rubberline-mariusz-gasiorowski/", "tkki-karol-janiszewski/", "bansek-maciej-banasik/", "cta-lukasz-skalski/", "fabryka-3d-magdalena-woznicka/"}
+
+    print("=== TEST DIAGNOSTYCZNY: MONITORFIRM.PB.PL ===")
+
+    for firma in firmy:
+        # Zabezpieczenie przed podwójnymi ukośnikami w linku
+        czysta_firma = firma.strip('/')
+        url = f"https://monitorfirm.pb.pl/firma/{czysta_firma}"
+        
+        print(f"\nSprawdzam: {url}")
+        
+        try:
+            # OBOWIĄZKOWA PAUZA! Testujemy cierpliwość serwera
+            time.sleep(random.uniform(2.0, 4.0))
+            
+            response = requests.get(url, headers=headers)
+            print(f"Status z serwera: {response.status_code}")
+            
+            if response.status_code == 200:
+                soup = BeautifulSoup(response.text, "html.parser")
+                
+                # 1. Tytuł strony (żeby udowodnić, że weszliśmy na dobry profil)
+                tytul = soup.title.text.strip() if soup.title else "Brak tytułu"
+                print(f"Pobrano stronę: {tytul[:60]}...") # Drukujemy pierwsze 60 znaków tytułu
+                
+                # 2. Szukamy jakiegokolwiek maila na całej stronie (spadochron)
+                caly_tekst = soup.get_text(separator=' ')
+                znalezione_maile = email_pattern.findall(caly_tekst)
+                
+                if znalezione_maile:
+                    # Wyświetlamy pierwszy napotkany email
+                    print(f"--> Znaleziono e-mail: {znalezione_maile[0]}")
+                else:
+                    print("--> Brak e-maila w kodzie strony (brak publicznych danych)")
+                    
+            elif response.status_code == 403:
+                print("❌ ŚCIANA! Zablokowali nas (403 Forbidden).")
+            elif response.status_code == 429:
+                print("❌ ŚCIANA! Za dużo zapytań na minutę (429 Too Many Requests).")
+                
+        except Exception as e:
+            print(f"Błąd połączenia: {e}")
+
+    
+
+
+
+    
 
