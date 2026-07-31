@@ -8,15 +8,13 @@ This project was built to automate the tedious process of lead generation. It is
 
  - **Multi-Source Parsing**: Integrates extraction logic for 6+ completely different website structures (from classic HTML tables to modern Elementor/WordPress blocks).
 
- - **Advanced Email Decryption:**
-
- - Successfully bypasses Cloudflare Email Obfuscation (__cf_email__) using custom hexadecimal decoding.
+ - **Advanced Email Decryption:** Successfully bypasses Cloudflare Email Obfuscation (__cf_email__) using custom hexadecimal decoding.
 
  - andles ROT13 email encryption often used by anti-spam plugins.
 
  - **Smart Deduplication:** Utilizes Python set() structures O(1) time complexity to ensure zero duplicate emails in the final dataset, significantly reducing processing time and saving memory.
 
- - **Regex Fallback (Deep Crawling):** Uses robust Regular Expressions as a fallback mechanism to extract emails buried deep within messy text strings when specific HTML tags are missing.
+ - **Regex Fallback:** Uses robust Regular Expressions as a fallback mechanism to extract emails buried deep within messy text strings when specific HTML tags are missing.
 
  - **Anti-Bot Measures:** Implements randomized request delays (time.sleep with random.uniform) and specific User-Agent spoofing to mimic human behavior and avoid 429 Too Many Requests or 403 Forbidden errors.
 
